@@ -15,9 +15,20 @@
 <ul id="messages"></ul>
 
 <script>
+    const username = prompt("Please enter your username:");
+    
     var socket;
     var stompClient;
     var ip;
+
+    var screenDict = {};
+    var toSend = {};
+    toSend["username"] = username;
+    toSend["windowCenterX"] = 1500;
+    toSend["windowCenterY"] = 1100;
+    toSend["windowWidth"] = window.innerWidth;
+    toSend["windowHeight"] = window.innerHeight;
+    
 
     start();
 
@@ -33,24 +44,29 @@
 
     async function start() {
         ip = await getIP();
+        var totalPath = ip+"/"+username;
+        toSend["totalPath"] = totalPath;
         socket = new SockJS('/data');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function () {
-            document.getElementById('ip').textContent = "HELLO";
-            stompClient.subscribe('/server/data', function (message) {
+            document.getElementById('ip').textContent = "/server/"+totalPath;
+            stompClient.subscribe('/server/'+totalPath, function (message) {
+
                 var msg = JSON.parse(message.body);
+                screenDict = msg;
+
                 var li = document.createElement("li");
-                li.appendChild(document.createTextNode(msg));
+                li.appendChild(document.createTextNode(msg.hello));
                 document.getElementById("messages").appendChild(li);
+
                 sendData();
             })
+            stompClient.send("/app/ip", {}, JSON.stringify(totalPath));
         })
     }
     
     function sendData() {
-        var content = document.getElementById("message").value;
-        var msg = [[10,5],[10,5]];
-        stompClient.send("/app/data", {}, JSON.stringify(msg));
+        stompClient.send("/app/data", {}, JSON.stringify(toSend));
         document.getElementById("message").value = "";
     }
     

@@ -6,6 +6,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class Connection {
@@ -15,10 +16,10 @@ public class Connection {
 
     private static Connection instance;
 
-    public static HashMap<String, int[][]> users = new HashMap<>();
+    public static HashMap<String, Map<String, Object>> users = new HashMap<>();
+    public static HashMap<String, Map<String, Object>> screens = new HashMap<>();
 
     private Connection(SimpMessagingTemplate template) {
-        System.out.println("HEEELOOOOO");
         this.template = template;
         instance = this;
     }
@@ -27,28 +28,25 @@ public class Connection {
         if (instance == null){
             instance = new Connection(null);
         }
-        if (instance != null){
-            System.out.println("HERETO");
-        }
         return instance;
     }
 
-    @SendTo("/server/data")
-    public void sendData(String ip, int[][] list) {
+    public void sendData(String ip) {
         template.convertAndSend(
             "/server/"+ip,
-            list
+            (Object)screens.getOrDefault(ip, new HashMap<String, Object>())
         );
     }
 
     @MessageMapping("/data")
-    private void receiveMessage(int[][] message) {
-
+    private void receiveMessage(Map<String, Object> message) {
+        users.put((String)message.get("totalPath"), message);
     }
 
     @MessageMapping("ip")
     private void recieveIP(String message) {
-        users.putIfAbsent(message.replace("\"", ""), new int[][]{{0,(int)(Math.random()*100),0}});
+        users.putIfAbsent(message.replace("\"", ""), new HashMap<String, Object>());
+        screens.putIfAbsent(message.replace("\"", ""), new HashMap<String, Object>());
     }
 
     public void startLoop(){
@@ -58,8 +56,7 @@ public class Connection {
         t = new Thread(()->{
             while (true){
                 for (String ip : users.keySet()){
-                    System.out.println("/server/"+ip);
-                    sendData(ip, users.get(ip));
+                    sendData(ip);
                 }
                 try {
                     Thread.sleep(20);

@@ -1,0 +1,16 @@
+int[][]
+
+[0][x] = Their ip address with each int in the second array being spliced by "."
+[1][x] = Their username integerized by Default Text Parser
+[2][x] = Their password integerized by Default Text Parser
+[3][x,y] = User screen size
+[4][x,y] = User mouse drag / arrow key additions
+[x > 4][] = name changes. If they own the creature, they can rename its genus, [x > 4][y,z > 0], aka y is the int id, then the rest is new name
+[x > 4][] = species edits. If they own the creature, and it offers evolution, they can pick a trait, [x > 4][y, z, a > 0], aka y is the int id, z is trait id, a > is trait attributes
+[x > 4][] = species splits. If they own the creature, and it offers split, they can pick a new name, [x > 4][y,z > 0], aka y is the new int id, then the rest is new name. Evolution is offered at the same time after
+
+
+
+
+
+Default Text Parser = lowercase 0-25, uppercase 26-51, 52-63 (1 to = on keyboard), 64-75 (1 to = on keyboard+shift)

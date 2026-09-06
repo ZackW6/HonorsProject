@@ -3,3 +3,5 @@ Paste this into the terminal for that to work:
 ngrok http 8080 --url https://astronomy-stoppage-existing.ngrok-free.dev
 
 https://www.youtube.com/watch?v=LF3Tn41j6Oc
+https://medium.com/@ryan_forrester_/get-ip-address-in-javascript-how-to-guide-13c91383b33f
+https://gist.github.com/rponte/2166107f65d3f8523e1498ed9b294b82

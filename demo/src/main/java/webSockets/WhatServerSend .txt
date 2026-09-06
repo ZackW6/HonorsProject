@@ -1,0 +1,10 @@
+int[][]
+
+[x][0, genomeTraits, name]
+[x][1, species, position, rotation, health]
+
+
+
+
+
+Default Text Parser = lowercase 0-25, uppercase 26-51, 52-63 (1 to = on keyboard), 64-75 (1 to = on keyboard+shift)
