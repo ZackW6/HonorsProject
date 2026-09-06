@@ -34,9 +34,9 @@ public class Connection {
     }
 
     @SendTo("/server/data")
-    public void sendData(int[][] list) {
+    public void sendData(String ip, int[][] list) {
         template.convertAndSend(
-            "/server/data",
+            "/server/"+ip,
             list
         );
     }
@@ -46,13 +46,21 @@ public class Connection {
 
     }
 
+    @MessageMapping("ip")
+    private void recieveIP(String message) {
+        users.putIfAbsent(message.replace("\"", ""), new int[][]{{0,(int)(Math.random()*100),0}});
+    }
+
     public void startLoop(){
         if (t != null){
             return;
         }
         t = new Thread(()->{
             while (true){
-                sendData(new int[][]{{0,0,0},{0,0,0}});
+                for (String ip : users.keySet()){
+                    System.out.println("/server/"+ip);
+                    sendData(ip, users.get(ip));
+                }
                 try {
                     Thread.sleep(20);
                 } catch (InterruptedException e) {
