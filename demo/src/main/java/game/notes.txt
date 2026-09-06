@@ -1,0 +1,4 @@
+ngrok is great, I can just deploy my server whenever.
+Paste this into the terminal for that to work ngrok http 80 --url https://astronomy-stoppage-existing.ngrok-free.dev
+
+https://www.youtube.com/watch?v=LF3Tn41j6Oc

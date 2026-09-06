@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h2>WebSocket Chat</h2>
+<input type="text" id="message" placeholder="Type a message..." />
+<button onclick="sendData()">Send</button>
+<text id="ip">TBD</text>
+<ul id="messages"></ul>
+
+<script>
+    var socket = new SockJS('/data');
+    var stompClient = Stomp.over(socket);
+    async function getIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            document.getElementById('ip').textContent = `Your IP Address: ${data.ip}`;
+        } catch (error) {
+            document.getElementById('ip').textContent = `err`;
+        }
+    }
+    getIP();
+    stompClient.connect({}, function () {
+        stompClient.subscribe('/server/data', function (message) {
+            var msg = JSON.parse(message.body);
+            var li = document.createElement("li");
+            li.appendChild(document.createTextNode(msg));
+            document.getElementById("messages").appendChild(li);
+            sendData();
+        })
+    })
+    
+    function sendData() {
+        var content = document.getElementById("message").value;
+        var msg = [[10,5],[10,5]];
+        stompClient.send("/app/data", {}, JSON.stringify(msg));
+        document.getElementById("message").value = "";
+    }
+    
+
+</script>
+</body>
+</html>
