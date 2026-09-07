@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Chat</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <body>
-<h2>WebSocket Chat</h2>
-<input type="text" id="message" placeholder="Type a message..." />
-<button onclick="sendData()">Send</button>
-<text id="ip">TBD</text>
-<ul id="messages"></ul>
+<canvas id="myCanvas" width="100" height="100"></canvas>
+<h2 id="output"> tbd </h2>
 
 <script>
     const username = prompt("Please enter your username:");
@@ -21,14 +19,52 @@
     var stompClient;
     var ip;
 
+    //https://www.w3schools.com/graphics/canvas_drawing.asp
+    const canvas = document.getElementById("myCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Source - https://stackoverflow.com/a/11381730
+    // Posted by Michael Zaporozhets, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-09-06, License - CC BY-SA 4.0
+
+    window.phoneScalar = function() {
+        if (window.innerWidth < 1000 && window.innerHeight < 1000){
+            return 2;
+        }
+        return 1;
+    };
+
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
     var screenDict = {};
     var toSend = {};
+
     toSend["username"] = username;
-    toSend["windowCenterX"] = 1500;
-    toSend["windowCenterY"] = 1100;
-    toSend["windowWidth"] = window.innerWidth;
-    toSend["windowHeight"] = window.innerHeight;
+    toSend["windowZeroX"] = 1500;
+    toSend["windowZeroY"] = 1100;
+    toSend["windowWidth"] = window.innerWidth * window.phoneScalar();
+    toSend["windowHeight"] = window.innerHeight * window.phoneScalar();
     
+    //https://stackoverflow.com/a/322827
+    var mouseDown = 0;
+    var mouseXInit = 0;
+    var mouseYInit = 0;
+
+    addEventListener("pointerdown", (event) => { 
+        ++mouseDown;
+        mouseXInit = event.clientX;
+        mouseYInit = event.clientY;
+    })
+
+    addEventListener("pointerup", (event) => { 
+        --mouseDown;
+    })
+
+    addEventListener("pointercancel", (event) => { 
+        --mouseDown;
+    })
 
     start();
 
@@ -49,16 +85,11 @@
         socket = new SockJS('/data');
         stompClient = Stomp.over(socket);
         stompClient.connect({}, function () {
-            document.getElementById('ip').textContent = "/server/"+totalPath;
             stompClient.subscribe('/server/'+totalPath, function (message) {
-
                 var msg = JSON.parse(message.body);
                 screenDict = msg;
-
-                var li = document.createElement("li");
-                li.appendChild(document.createTextNode(msg.hello));
-                document.getElementById("messages").appendChild(li);
-
+                drawCreatures();
+                recheck();
                 sendData();
             })
             stompClient.send("/app/ip", {}, JSON.stringify(totalPath));
@@ -67,10 +98,57 @@
     
     function sendData() {
         stompClient.send("/app/data", {}, JSON.stringify(toSend));
-        document.getElementById("message").value = "";
+    }
+
+    addEventListener("pointermove", (event) => { 
+        console.log('Mouse X:', toSend["windowZeroX"], 'Mouse Y:', toSend["windowZeroY"], 'Mouse down:', mouseDown);
+        if (mouseDown == 1){
+            toSend["windowZeroX"] = toSend["windowZeroX"] + mouseXInit - event.clientX;
+            toSend["windowZeroY"] = toSend["windowZeroY"] + mouseYInit - event.clientY;
+            mouseXInit = event.clientX;
+            mouseYInit = event.clientY;
+        }
+    })
+
+    function recheck(){
+        if (canvas.width != window.innerWidth || canvas.height != window.innerHeight){
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            toSend["windowWidth"] = window.innerWidth * window.phoneScalar();
+            toSend["windowHeight"] = window.innerHeight * window.phoneScalar();
+        }
+    }
+
+    function drawCreatures(){
+        ctx.resetTransform();
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        
+        ctx.save();
+        console.log("phoneScalar: " + window.phoneScalar())
+        if (window.phoneScalar() > 1){
+            ctx.scale(.5,.5);
+        }
+        
+        if (screenDict["Creatures"] == null){
+            document.getElementById("output").textContent = "HERE";
+            return;
+        }
+        for (var i = 0; i < screenDict["Creatures"].length; i++){
+            drawCreature(screenDict["Creatures"][i][0], screenDict["Creatures"][i][1], screenDict["Creatures"][i][2], "red", "blue");
+        }
+        ctx.restore();
+    }
+
+    function drawCreature(x, y, radius, innerColor, outerColor){
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = innerColor;
+        ctx.fill();
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = outerColor;
+        ctx.stroke();
     }
     
-
 </script>
 </body>
 </html>

@@ -5,7 +5,10 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import game.Test;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -56,6 +59,7 @@ public class Connection {
         t = new Thread(()->{
             while (true){
                 for (String ip : users.keySet()){
+                    updateUserScreen(ip);
                     sendData(ip);
                 }
                 try {
@@ -67,5 +71,14 @@ public class Connection {
         });
         t.setDaemon(true);
         t.start();
+    }
+
+    public void updateUserScreen(String ip){
+        if (!users.get(ip).containsKey("windowWidth")){
+            return;
+        }
+        Map<String, Object> user = users.get(ip);
+        List<int[]> viewableGameElements = Test.getViewableGameElements(((Number)user.get("windowZeroX")).intValue(), ((Number)user.get("windowZeroY")).intValue(), ((Number)user.get("windowWidth")).intValue(), ((Number)user.get("windowHeight")).intValue());
+        screens.get(ip).put("Creatures", viewableGameElements);
     }
 }

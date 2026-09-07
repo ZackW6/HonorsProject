@@ -1,0 +1,20 @@
+html, body {
+    /* Prevents the viewport from being panned or scrolled via touch */
+    touch-action: none;
+    
+    /* Hides any overflow content and locks the viewport dimensions */
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    
+    /* Disables the mobile rubber-band "bounce" effect in Safari/Chrome */
+    overscroll-behavior: none; 
+}
+canvas {
+    display: block;
+    width: 100vw;   /* Forces canvas to fill full screen width */
+    height: 100vh;  /* Forces canvas to fill full screen height */
+    position: fixed;
+    top: 0;
+    left: 0;
+}
