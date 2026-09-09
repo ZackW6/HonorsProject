@@ -24,8 +24,8 @@ var screenDict = {};
 var toSend = {};
 
 toSend["username"] = username;
-toSend["windowZeroX"] = 1500;
-toSend["windowZeroY"] = 1100;
+toSend["windowCenterX"] = 0;
+toSend["windowCenterY"] = 0;
 toSend["windowWidth"] = window.innerWidth * 1/window.zoomScalar();
 toSend["windowHeight"] = window.innerHeight * 1/window.zoomScalar();
 
@@ -49,10 +49,9 @@ addEventListener("pointercancel", (event) => {
 })
 
 addEventListener("pointermove", (event) => { 
-    console.log('Mouse X:', toSend["windowZeroX"], 'Mouse Y:', toSend["windowZeroY"], 'Mouse down:', mouseDown);
     if (mouseDown == 1){
-        toSend["windowZeroX"] = toSend["windowZeroX"] + (mouseXInit - event.clientX)*1/window.zoomScalar();
-        toSend["windowZeroY"] = toSend["windowZeroY"] + (mouseYInit - event.clientY)*1/window.zoomScalar();
+        toSend["windowCenterX"] = toSend["windowCenterX"] + (mouseXInit - event.clientX)*1/window.zoomScalar();
+        toSend["windowCenterY"] = toSend["windowCenterY"] + (mouseYInit - event.clientY)*1/window.zoomScalar();
         mouseXInit = event.clientX;
         mouseYInit = event.clientY;
     }
@@ -60,22 +59,20 @@ addEventListener("pointermove", (event) => {
 
 //https://melin.vercel.app/blog/2026-08-28-practical-notes-on-javascript-events-for-two-finger-image-zoom-o#detecting-trackpad-pinch-zoom-on-mac
 addEventListener('wheel', function (event) {
-  if (!event.deltaY || !event.ctrlKey) {
-    return;
-  }
+    var divisor = 10;
+    if (!event.ctrlKey){
+        divisor = 300;
+    }
+    if (!event.deltaY) {
+        return;
+    }
 
-  event.preventDefault();
+    event.preventDefault();
 
-  if (event.deltaY < 0) {
-    console.log("zoomOut")
-  } else if (event.deltaY > 0) {
-    console.log("zoomIn")
-  }
-  console.log("zoomAmount: " + (event.deltaY))
-  zoomAdditive -=(event.deltaY/10);
-  zoomAdditive = Math.max(Math.min(zoomAdditive, 10), -.25);
+    zoomAdditive -=(event.deltaY/divisor);
+    zoomAdditive = Math.max(Math.min(zoomAdditive, 10), -.25);
 }, {
-  passive: false
+    passive: false
 });
 
 var arrowUp = false;
@@ -126,18 +123,13 @@ async function getIP() {
 
 async function start() {
     ip = await getIP();
-    var totalPath = ip+"/"+username;
+    var totalPath = "/"+username;
     toSend["totalPath"] = totalPath;
     socket = new SockJS('/data');
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function () {
         stompClient.subscribe('/server/'+totalPath, function (message) {
-            var msg = JSON.parse(message.body);
-            screenDict = msg;
-            drawCreatures();
-            recheck();
-            arrowkeys();
-            sendData();
+            recieveMessage(message);
         })
         stompClient.send("/app/ip", {}, JSON.stringify(totalPath));
     })
@@ -147,12 +139,41 @@ function sendData() {
     stompClient.send("/app/data", {}, JSON.stringify(toSend));
 }
 
+//Plus https://gist.github.com/asidko/9c7064027039411a11323eaf7d8ea2a4
+const decompress = base64string => {
+    const bytes = Uint8Array.from(atob(base64string), c => c.charCodeAt(0));
+    const cs = new DecompressionStream('gzip');
+    const writer = cs.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    return new Response(cs.readable).arrayBuffer().then(function (arrayBuffer) {
+        return new TextDecoder().decode(arrayBuffer);
+    });
+}
+
+// Source - https://stackoverflow.com/a/68829631
+// Posted by joe, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-09-07, License - CC BY-SA 4.0
+async function recieveMessage(msg) {
+    if (typeof msg == "undefined" || Object.keys(msg).length == 0){
+        return;
+    }
+    var decompressedValue = await decompress(msg.body);
+
+    var msgDecompressed = JSON.parse(decompressedValue);
+    screenDict = msgDecompressed;
+    // screenDict = JSON.parse(msg.body);
+    drawCreatures();
+    recheck();
+    arrowkeys();
+    sendData();
+}
+
 function recheck(){
     if (canvas.width != window.innerWidth || canvas.height != window.innerHeight){
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     }
-    console.log("wippeee: " + canvas.width+".  "+window.innerWidth);
     toSend["windowWidth"] = window.innerWidth * 1/window.zoomScalar();
     toSend["windowHeight"] = window.innerHeight * 1/window.zoomScalar();
 }
@@ -173,8 +194,8 @@ function arrowkeys(){
     if (arrowRight){
         horiz+=1;
     }
-    toSend["windowZeroX"]+=(horiz*5);
-    toSend["windowZeroY"]+=(vert*5);
+    toSend["windowCenterX"]+=(horiz*5);
+    toSend["windowCenterY"]+=(vert*5);
 }
 
 function drawCreatures(){
@@ -195,9 +216,9 @@ function drawCreatures(){
         const innerRGB = `rgb(${creature[4]} ${creature[5]} ${creature[6]})`; 
         const outerRGB = `rgb(${creature[7]} ${creature[8]} ${creature[9]})`; 
         if (creature[11] == 0){
-            drawCircle(creature[0], creature[1], creature[10], innerRGB, outerRGB);
+            drawCircle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[10], innerRGB, outerRGB);
         }else if (creature[11] == 1){
-            drawTriangle(creature[0], creature[1], creature[10], creature[2], innerRGB, outerRGB)
+            drawTriangle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[10], creature[2], innerRGB, outerRGB)
         }
         
     }

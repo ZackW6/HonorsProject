@@ -1,15 +1,25 @@
 package webSockets;
 
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.codec.json.GsonEncoder;
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import game.Test;
+import com.google.gson.Gson;
 
+import game.Game;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 public class Connection {
@@ -19,8 +29,10 @@ public class Connection {
 
     private static Connection instance;
 
-    public static HashMap<String, Map<String, Object>> users = new HashMap<>();
-    public static HashMap<String, Map<String, Object>> screens = new HashMap<>();
+    private static final Gson gson = new Gson();
+
+    public static ConcurrentHashMap<String, Map<String, Object>> users = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<String, Map<String, Object>> screens = new ConcurrentHashMap<>();
 
     private Connection(SimpMessagingTemplate template) {
         this.template = template;
@@ -35,10 +47,16 @@ public class Connection {
     }
 
     public void sendData(String ip) {
-        template.convertAndSend(
-            "/server/"+ip,
-            (Object)screens.getOrDefault(ip, new HashMap<String, Object>())
-        );
+        String json = gson.toJson(screens.getOrDefault(ip, new HashMap<String, Object>()));
+        byte[] bytes = new byte[]{};
+        try {
+            bytes = CompressJSON.compress(json);
+        } catch (IOException e) {
+            System.out.println("AHHHHHH");
+        }
+        String text = Base64.getEncoder().encodeToString(bytes);
+        // template.convertAndSend("/server/"+ip, (Object)screens.getOrDefault(ip, new HashMap<String, Object>()));
+        template.convertAndSend("/server/"+ip, text);
     }
 
     @MessageMapping("/data")
@@ -68,7 +86,7 @@ public class Connection {
                     break;
                 }
             }
-        });
+        }, "renderLoop");
         t.setDaemon(true);
         t.start();
     }
@@ -78,7 +96,7 @@ public class Connection {
             return;
         }
         Map<String, Object> user = users.get(ip);
-        List<int[]> viewableGameElements = Test.getViewableGameElements(((Number)user.get("windowZeroX")).intValue(), ((Number)user.get("windowZeroY")).intValue(), ((Number)user.get("windowWidth")).intValue(), ((Number)user.get("windowHeight")).intValue());
+        List<int[]> viewableGameElements = Game.getViewableGameElements(((Number)user.get("windowCenterX")).intValue(), ((Number)user.get("windowCenterY")).intValue(), ((Number)user.get("windowWidth")).intValue(), ((Number)user.get("windowHeight")).intValue());
         screens.get(ip).put("Creatures", viewableGameElements);
     }
 }
