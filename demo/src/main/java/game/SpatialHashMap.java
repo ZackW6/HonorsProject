@@ -59,4 +59,8 @@ public class SpatialHashMap <T>{
         }
         return objects;
     }
+    
+    public void clear(){
+        contents.clear();
+    }
 }

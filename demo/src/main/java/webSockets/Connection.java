@@ -56,18 +56,23 @@ public class Connection {
         }
         String text = Base64.getEncoder().encodeToString(bytes);
         // template.convertAndSend("/server/"+ip, (Object)screens.getOrDefault(ip, new HashMap<String, Object>()));
+
         template.convertAndSend("/server/"+ip, text);
+        screens.get(ip).put("lastServerSent", System.currentTimeMillis());
     }
 
     @MessageMapping("/data")
     private void receiveMessage(Map<String, Object> message) {
         users.put((String)message.get("totalPath"), message);
+        users.get((String)message.get("totalPath")).put("lastUserSent", System.currentTimeMillis());
     }
 
     @MessageMapping("ip")
     private void recieveIP(String message) {
         users.putIfAbsent(message.replace("\"", ""), new HashMap<String, Object>());
         screens.putIfAbsent(message.replace("\"", ""), new HashMap<String, Object>());
+
+        users.get(message.replace("\"", "")).put("lastUserSent", System.currentTimeMillis());
     }
 
     public void startLoop(){
@@ -77,8 +82,11 @@ public class Connection {
         t = new Thread(()->{
             while (true){
                 for (String ip : users.keySet()){
-                    updateUserScreen(ip);
-                    sendData(ip);
+                    if ((long)users.get(ip).getOrDefault("lastUserSent", Long.MAX_VALUE) + (long)10000> (long)screens.get(ip).getOrDefault("lastServerSent", Long.MIN_VALUE)){
+                        System.out.println(ip);
+                        updateUserScreen(ip);
+                        sendData(ip);
+                    }
                 }
                 try {
                     Thread.sleep(20);
@@ -98,5 +106,6 @@ public class Connection {
         Map<String, Object> user = users.get(ip);
         List<int[]> viewableGameElements = Game.getViewableGameElements(((Number)user.get("windowCenterX")).intValue(), ((Number)user.get("windowCenterY")).intValue(), ((Number)user.get("windowWidth")).intValue(), ((Number)user.get("windowHeight")).intValue());
         screens.get(ip).put("Creatures", viewableGameElements);
+        screens.get(ip).put("Species", Game.getSpecies());
     }
 }

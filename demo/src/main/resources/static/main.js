@@ -140,15 +140,27 @@ function sendData() {
 }
 
 //Plus https://gist.github.com/asidko/9c7064027039411a11323eaf7d8ea2a4
+// const decompress = base64string => {
+//     const bytes = Uint8Array.from(atob(base64string), c => c.charCodeAt(0));
+//     const cs = new DecompressionStream('gzip');
+//     const writer = cs.writable.getWriter();
+//     writer.write(bytes);
+//     writer.close();
+//     return new Response(cs.readable).arrayBuffer().then(function (arrayBuffer) {
+//         return new TextDecoder().decode(arrayBuffer);
+//     });
+// }
+
+//https://cdn.jsdelivr.net/npm/snappyjs@0.7.0/
 const decompress = base64string => {
     const bytes = Uint8Array.from(atob(base64string), c => c.charCodeAt(0));
-    const cs = new DecompressionStream('gzip');
-    const writer = cs.writable.getWriter();
-    writer.write(bytes);
-    writer.close();
-    return new Response(cs.readable).arrayBuffer().then(function (arrayBuffer) {
-        return new TextDecoder().decode(arrayBuffer);
-    });
+    var uncompressed;
+    try {
+        uncompressed = uncompress(bytes, 100000);
+    } catch (error) {
+        uncompressed = new TextEncoder().encode("{}");
+    }
+    return new TextDecoder().decode(uncompressed);
 }
 
 // Source - https://stackoverflow.com/a/68829631
@@ -159,10 +171,9 @@ async function recieveMessage(msg) {
         return;
     }
     var decompressedValue = await decompress(msg.body);
-
     var msgDecompressed = JSON.parse(decompressedValue);
     screenDict = msgDecompressed;
-    // screenDict = JSON.parse(msg.body);
+    // screenDict = ON.parse(msg.body);
     drawCreatures();
     recheck();
     arrowkeys();
@@ -213,14 +224,14 @@ function drawCreatures(){
 
     for (var i = 0; i < screenDict["Creatures"].length; i++){
         var creature = screenDict["Creatures"][i];
-        const innerRGB = `rgb(${creature[4]} ${creature[5]} ${creature[6]})`; 
-        const outerRGB = `rgb(${creature[7]} ${creature[8]} ${creature[9]})`; 
+        var species = screenDict["Species"][1];
+        const innerRGB = `rgb(${creature[2]} ${creature[3]} ${creature[4]})`; 
+        const outerRGB = `rgb(${creature[5]} ${creature[6]} ${creature[7]})`; 
         if (creature[11] == 0){
             drawCircle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[10], innerRGB, outerRGB);
         }else if (creature[11] == 1){
             drawTriangle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[10], creature[2], innerRGB, outerRGB)
         }
-        
     }
 
     ctx.restore();
