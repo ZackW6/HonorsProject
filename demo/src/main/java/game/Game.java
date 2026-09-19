@@ -3,25 +3,27 @@ package game;
 import java.util.ArrayList;
 import java.util.List;
 
+import game.mapping.SpatialHashMap;
+import game.mapping.Vector2D;
+
 public class Game {
     public static final int fieldSizeX = 5000;
     public static final int fieldSizeY = 5000;
 
     public static final int sideBuffer = 100;
-    //GameElements are defined such that [0] = x coord, [1] = y coord, [2] = orientation, [3] = species, [4] = size, [5] = health, [6] = energy
     public static final ArrayList<int[]> gameElements = new ArrayList<>();
-    //Species are defines such that [0] = speciesID, [1] = playerID, [2,3,4] outerColor, [5,6,7] innerColor, 
+    //Species are defines such that [0] = speciesID, [1] = playerID, [2,3,4] outerColor, [5,6,7] innerColor, [8] shape, 
     public static final ArrayList<int[]> species = new ArrayList<>();
     public static final SpatialHashMap<int[]> spatial = new SpatialHashMap<>(200);
     
     static{
         for (int i = 0; i < 1000; i++){
-            gameElements.add(new int[]{randInt(-fieldSizeX/2, fieldSizeX/2), randInt(-fieldSizeY/2,fieldSizeY/2), randInt(0, 360), randInt(0, 5), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(10, 50), randInt(0, 1)});
-            //gameElements.add(new int[]{randInt(-fieldSizeX/2, fieldSizeX/2), randInt(-fieldSizeY/2,fieldSizeY/2), randInt(0, 360), randInt(0, 10), randInt(10, 100), randInt(10, 100), randInt(10, 100)});
+            // gameElements.add(new int[]{randInt(-fieldSizeX/2, fieldSizeX/2), randInt(-fieldSizeY/2,fieldSizeY/2), randInt(0, 360), randInt(0, 5), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(10, 50), randInt(0, 1)});
+            gameElements.add(new int[]{randInt(-fieldSizeX/2, fieldSizeX/2), randInt(-fieldSizeY/2,fieldSizeY/2), randInt(0, 360), randInt(0, 10), randInt(10, 100), randInt(10, 100), randInt(10, 100)});
             spatial.insertObjectForPoint(Vector2D.of(gameElements.get(i)[0], gameElements.get(i)[1]), gameElements.get(i));
         }
         for (int i = 0; i < 10; i++){
-            species.add(new int[]{i, i, randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255)});
+            species.add(new int[]{i, i, randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 255), randInt(0, 1)});
         }
     }
 

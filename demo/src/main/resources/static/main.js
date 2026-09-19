@@ -6,6 +6,7 @@ var ip;
 
 //https://www.w3schools.com/graphics/canvas_drawing.asp
 const canvas = document.getElementById("myCanvas");
+const output = document.getElementById("output");
 const ctx = canvas.getContext("2d");
 
 // Source - https://stackoverflow.com/a/11381730
@@ -217,20 +218,27 @@ function drawCreatures(){
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.scale(window.zoomScalar(),window.zoomScalar());
     
-    
     if (screenDict["Creatures"] == null){
         return;
     }
 
     for (var i = 0; i < screenDict["Creatures"].length; i++){
         var creature = screenDict["Creatures"][i];
-        var species = screenDict["Species"][1];
-        const innerRGB = `rgb(${creature[2]} ${creature[3]} ${creature[4]})`; 
-        const outerRGB = `rgb(${creature[5]} ${creature[6]} ${creature[7]})`; 
-        if (creature[11] == 0){
-            drawCircle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[10], innerRGB, outerRGB);
-        }else if (creature[11] == 1){
-            drawTriangle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[10], creature[2], innerRGB, outerRGB)
+        var species = screenDict["Species"][creature[3]];
+
+        if (species == undefined){
+            continue;
+        }
+        //species["speciesID"],["playerID"],["outerColorR"],["outerColorG"],["outerColorB"],["innerColorR"],["innerColorG"],["innerColorB"],["shape"]
+        //Creatures are defined such that [0] = x coord, [1] = y coord, [2] = orientation, [3] = species, [4] = size, [5] = health, [6] = energy
+        output.textContent = species["shape"]+"   "+creature[1];
+        const innerRGB = `rgb(${species["innerColorR"]} ${species["innerColorG"]} ${species["innerColorB"]})`; 
+        const outerRGB = `rgb(${species["outerColorR"]} ${species["outerColorG"]} ${species["outerColorB"]})`; 
+        if (species["shape"] == 0){
+            drawCircle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[4], innerRGB, outerRGB);
+        }else if (species["shape"] == 1){
+            // drawCircle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[4], innerRGB, outerRGB);
+            drawTriangle(creature[0] - toSend["windowCenterX"], creature[1] - toSend["windowCenterY"], creature[4], creature[2], innerRGB, outerRGB)
         }
     }
 

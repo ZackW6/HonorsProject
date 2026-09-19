@@ -10,7 +10,7 @@ import org.springframework.stereotype.Controller;
 
 import com.google.gson.Gson;
 
-import game.Game;
+import game.creatures.Global;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -67,7 +67,7 @@ public class Connection {
         users.get((String)message.get("totalPath")).put("lastUserSent", System.currentTimeMillis());
     }
 
-    @MessageMapping("ip")
+    @MessageMapping("/ip")
     private void recieveIP(String message) {
         users.putIfAbsent(message.replace("\"", ""), new HashMap<String, Object>());
         screens.putIfAbsent(message.replace("\"", ""), new HashMap<String, Object>());
@@ -104,8 +104,8 @@ public class Connection {
             return;
         }
         Map<String, Object> user = users.get(ip);
-        List<int[]> viewableGameElements = Game.getViewableGameElements(((Number)user.get("windowCenterX")).intValue(), ((Number)user.get("windowCenterY")).intValue(), ((Number)user.get("windowWidth")).intValue(), ((Number)user.get("windowHeight")).intValue());
+        List<int[]> viewableGameElements = Global.getViewableGameElements(((Number)user.get("windowCenterX")).intValue(), ((Number)user.get("windowCenterY")).intValue(), ((Number)user.get("windowWidth")).intValue(), ((Number)user.get("windowHeight")).intValue());
         screens.get(ip).put("Creatures", viewableGameElements);
-        screens.get(ip).put("Species", Game.getSpecies());
+        screens.get(ip).put("Species", Global.getSpecies());
     }
 }

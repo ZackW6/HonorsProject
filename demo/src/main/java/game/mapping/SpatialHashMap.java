@@ -1,4 +1,4 @@
-package game;
+package game.mapping;
 //https://gamedev.net/tutorials/programming/general-and-gameplay-programming/spatial-hashing-r2697
 
 import java.util.ArrayList;
@@ -54,7 +54,10 @@ public class SpatialHashMap <T>{
         ArrayList<T> objects = new ArrayList<>();     
         for (int x = min.x; x <= max.x; x++){
             for (int y = min.y; y <= max.y; y++){
-                objects.addAll(getObjectsAtHash(Vector2D.of(x,y)));
+                List<T> list = getObjectsAtHash(Vector2D.of(x,y));
+                if (list != null){
+                    objects.addAll(list);
+                }
             }
         }
         return objects;
