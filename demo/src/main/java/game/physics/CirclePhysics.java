@@ -9,14 +9,16 @@ public class CirclePhysics {
     private Vector2D velocity;
     private Vector2D acceleration;
     private Vector2D coords;
+    private double dragCoef;
     private int radius;
 
-    public CirclePhysics(Vector2D initCoords, int radius, double mass, Vector2D initVelocity) {
+    public CirclePhysics(Vector2D initCoords, int radius, double mass, Vector2D initVelocity, double dragCoef) {
         this.coords = initCoords;
         this.radius = radius;
         this.mass = mass;
         this.velocity = initVelocity;
-        this.acceleration = new Vector2D(0, .05);
+        this.acceleration = new Vector2D(0, 0);
+        this.dragCoef = dragCoef;
     }
 
     public Vector2D getCoords(){
@@ -102,8 +104,14 @@ public class CirclePhysics {
         }
     }
     
+    private long lastTimeMilli = System.currentTimeMillis();
     public void applyMovement(){
-        velocity = velocity.add(acceleration);
-        coords = coords.add(velocity);
+        long currentTimeMilli = System.currentTimeMillis();
+        double deltaSeconds = (currentTimeMilli - lastTimeMilli)/1000.0;
+        lastTimeMilli = currentTimeMilli;
+
+        Vector2D dragAccel = new Vector2D(acceleration).subtract(velocity.multiply(dragCoef));//.multiply(deltaSeconds);
+        velocity = velocity.add(dragAccel.multiply(deltaSeconds));
+        coords = coords.add(velocity.multiply(deltaSeconds));
     }
 }

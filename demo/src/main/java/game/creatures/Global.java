@@ -9,8 +9,8 @@ import game.mapping.SpatialHashMap;
 import game.mapping.Vector2D;
 
 public class Global {
-    public static final int fieldSizeX = 5000;
-    public static final int fieldSizeY = 5000;
+    public static final int fieldSizeX = 7500;
+    public static final int fieldSizeY = 7500;
 
     //species["speciesID"],["playerID"],["outerColorR"],["outerColorG"],["outerColorB"],["innerColorR"],["innerColorG"],["innerColorB"],["shape"]
     public static ArrayList<HashMap<String, Integer>> globalSpecies = new ArrayList<HashMap<String, Integer>>();
@@ -21,16 +21,6 @@ public class Global {
 
     private static Thread t;
     public static void beginCreatures(){
-        for (int i = 0; i < 500; i++){
-            int size = randInt(10, 50);
-            globalCreatures.add(new Creature(
-                new game.physics.Vector2D(randInt(-fieldSizeX/2, fieldSizeX/2), randInt(-fieldSizeY/2,fieldSizeY/2)), 
-                randInt(0, 9),
-                randInt(0, 360), 
-                size, 
-                size, 
-                new game.physics.Vector2D(randInt(-10, 10), randInt(-10,10))));
-        }
         for (int i = 0; i < 10; i++){
             HashMap<String, Integer> specii = new HashMap<>(Map.of(
                 "speciesID", i,
@@ -42,10 +32,23 @@ public class Global {
                 "innerColorG", randInt(0, 255),
                 "innerColorB", randInt(0, 255),
                 "shape", randInt(0, 1)
+
             ));
             globalSpecies.add(specii);
         }
 
+        for (int i = 0; i < 4000; i++){
+            int size = randInt(10, 50);
+            globalCreatures.add(new Creature(
+                new game.physics.Vector2D(randInt(-fieldSizeX/2, fieldSizeX/2), randInt(-fieldSizeY/2,fieldSizeY/2)), 
+                randInt(0, 9),
+                randInt(0, 360), 
+                size, 
+                size, 
+                new game.physics.Vector2D(randInt(-100, 100), randInt(-100,100)),
+                .5));
+        }
+        
         t = new Thread(()->{
             while (true){
                 SpatialHashMap<Creature> newSpatial = new SpatialHashMap<>(200);
@@ -53,7 +56,7 @@ public class Global {
                     Vector2D creatureCoords = new Vector2D((int)c.getCoords().x, (int)c.getCoords().y);
                     List<Creature> nearbyCreatures = spatial.getObjectsInBounds(creatureCoords.add(new Vector2D(-200,-200)), creatureCoords.add(new Vector2D(200,200)));
 
-                    c.tickLife(-fieldSizeX/2, fieldSizeX/2, -fieldSizeY/2, fieldSizeY/2, .97, nearbyCreatures);
+                    c.tickLife(-fieldSizeX/2, fieldSizeX/2, -fieldSizeY/2, fieldSizeY/2, 1, nearbyCreatures);
                     creatureCoords = new Vector2D((int)c.getCoords().x, (int)c.getCoords().y);
                     newSpatial.insertObjectForPoint(creatureCoords, c);
                 }

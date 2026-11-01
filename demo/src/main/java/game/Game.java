@@ -3,8 +3,10 @@ package game;
 import java.util.ArrayList;
 import java.util.List;
 
+import game.creatures.Global;
 import game.mapping.SpatialHashMap;
 import game.mapping.Vector2D;
+import webSockets.Connection;
 
 public class Game {
     public static final int fieldSizeX = 5000;
@@ -39,5 +41,10 @@ public class Game {
 
     public static List<int[]> getSpecies(){
         return species;
+    }
+
+    public static void beginGame() {
+        Connection.getInstance().startLoop();
+        Global.beginCreatures();
     }
 }

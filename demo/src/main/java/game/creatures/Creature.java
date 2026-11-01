@@ -1,5 +1,6 @@
 package game.creatures;
 
+import java.util.HashMap;
 import java.util.List;
 
 import game.physics.CirclePhysics;
@@ -9,19 +10,25 @@ public class Creature extends CirclePhysics{
 
     private int[] baseData = new int[7];
     private int orientation = 0;
-    private int species = 0;
+    private int speciesID = 0;
+    private HashMap<String, Integer> species;
 
-    public Creature(Vector2D initCoords, int species, int orientation, int radius, double mass, Vector2D initVelocity) {
-        super(initCoords, radius, mass, initVelocity);
+    public Creature(Vector2D initCoords, int species, int orientation, int radius, double mass, Vector2D initVelocity, double dragCoef) {
+        super(initCoords, radius, mass, initVelocity, dragCoef);
         this.orientation = orientation;
-        this.species = species;
+        this.speciesID = species;
+        this.species = Global.getSpecies().get(speciesID);
     }
 
     public int[] getBaseData(){
         return baseData;
     }
     
-    public int getSpecies(){
+    public int getSpeciesID(){
+        return speciesID;
+    }
+
+    public HashMap<String, Integer> getSpecies(){
         return species;
     }
 
@@ -36,7 +43,7 @@ public class Creature extends CirclePhysics{
         baseData[0] = (int)getCoords().x;
         baseData[1] = (int)getCoords().y;
         baseData[2] = orientation;
-        baseData[3] = species;
+        baseData[3] = speciesID;
         //TODO Implement
         baseData[4] = (int)getRadius();
         baseData[5] = 0;
