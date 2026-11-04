@@ -46,7 +46,7 @@ public class Global {
                 size, 
                 size, 
                 new game.physics.Vector2D(randInt(-100, 100), randInt(-100,100)),
-                .5));
+                0));
         }
         
         t = new Thread(()->{

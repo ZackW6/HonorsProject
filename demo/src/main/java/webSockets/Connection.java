@@ -83,7 +83,6 @@ public class Connection {
             while (true){
                 for (String ip : users.keySet()){
                     if ((long)users.get(ip).getOrDefault("lastUserSent", Long.MAX_VALUE) + (long)10000> (long)screens.get(ip).getOrDefault("lastServerSent", Long.MIN_VALUE)){
-                        System.out.println(ip);
                         updateUserScreen(ip);
                         sendData(ip);
                     }
