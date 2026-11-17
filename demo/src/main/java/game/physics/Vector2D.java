@@ -61,6 +61,15 @@ public class Vector2D {
         }
     }
 
+    public static Vector2D randDirection(int magnitude) {
+        double dir = 2 * Math.PI * Math.random();
+        return new Vector2D(Math.cos(dir) * magnitude, Math.sin(dir) * magnitude);
+    }
+
+    public double angleDegrees() {
+        return Math.atan2(y, x) * 360 / (2 * Math.PI);
+    }
+
     @Override
     public String toString(){
         return "["+x+", "+y+"]";

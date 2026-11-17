@@ -4,13 +4,13 @@ import java.util.List;
 
 
 //This is a heavily modified file from a different project of mine, but given this projects complexity, I hope its fine
-public class CirclePhysics {
-    private double mass;
-    private Vector2D velocity;
-    private Vector2D acceleration;
-    private Vector2D coords;
-    private double dragCoef;
-    private int radius;
+public abstract class CirclePhysics {
+    protected double mass;
+    protected Vector2D velocity;
+    protected Vector2D acceleration;
+    protected Vector2D coords;
+    protected double dragCoef;
+    protected int radius;
 
     public CirclePhysics(Vector2D initCoords, int radius, double mass, Vector2D initVelocity, double dragCoef) {
         this.coords = initCoords;
@@ -67,6 +67,7 @@ public class CirclePhysics {
             double dist = center1.distanceTo(center2);
 
             if (dist <= radius+other.radius && !equals(other)) {
+                onCollide(other);
                 Vector2D n = center2.subtract(center1);
                 double distance = n.magnitude();
                 double overlap = radius + other.radius - distance;
@@ -114,4 +115,6 @@ public class CirclePhysics {
         velocity = velocity.add(dragAccel.multiply(deltaSeconds));
         coords = coords.add(velocity.multiply(deltaSeconds));
     }
+
+    public abstract void onCollide(CirclePhysics other);
 }
